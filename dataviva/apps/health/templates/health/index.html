@@ -1,0 +1,184 @@
+<!-- extend from base layout -->
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<!-- BREADCRUMB -->
+<div class="container">
+    <div class="row bg-white">
+        <ol class="breadcrumb">
+            <li>
+                <a href="{{ url_for('general.home') }}">Home</a>
+            </li>
+            <li {{ 'class="active"' if not location else '' }}>
+                <a href="#" title="Trocar" > Hospital João 23</a>
+            </li>
+        </ol>
+    </div>
+</div>
+<!-- BREADCRUMB -->
+
+<section id="header" class="header" style="background: url(static/saude-bg.jpg) no-repeat center center fixed; background-size: cover;">
+
+  <div class="photo-credit">
+    <div class="container">
+    <a href="#" target="blank">
+    <i class="fa fa-camera"></i> {% trans %}picture by{% endtrans %} 'Rodrigo W. Blum'</a>
+    </div>
+  </div>
+
+    <div class="summary-box">
+        <div class="container">
+
+            <span class="portrait hidden-xs"></span>
+            <h1>Hospital João 23
+                <div class="btn-group">
+                  <button type="button" class="btn btn-link btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% trans %}change{% endtrans %} <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a href="#" onclick="select_attr_search('bra');">{% trans %}Location{% endtrans %}</a></li>
+                  </ul>
+                </div>
+            </h1>
+            <span class="clearfix"></span>
+
+            <div class="indices">
+                <div class="row">
+
+                    
+                    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="widget">
+                            <h2 class="text-left text-uppercase">PIB (2010) </h2>
+                            <div class="number">
+                                R$ <strong class="counter">54,9</strong><br>
+                                <small class="magnitude">Bilhões</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    
+                    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="widget">
+                            <h2 class="text-left text-uppercase">Expectativa de Vida (2010)</h2>
+                            <div class="number">
+                                <strong class="counter">76,3</strong><br>
+                                <small class="magnitude">Anos</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    
+                    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="widget">
+                            <h2 class="text-left text-uppercase">População Total (2010) </h2>
+                            <div class="number">
+                                <strong class="counter">2,37</strong><br>
+                                <small class="magnitude">Milhões</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    
+                    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="widget">
+                            <h2 class="text-left text-uppercase">PIB per capita (2010) </h2>
+                            <div class="number">
+                                R$ <strong class="counter">23,0</strong><br>
+                                <small class="magnitude">Mil</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    
+                    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="widget">
+                            <h2 class="text-left text-uppercase">IDHM (2010)</h2>
+                            <div class="number">
+                                <strong class="counter">0,81</strong><br>
+                                <small class="magnitude"></small>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    
+                    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="widget">
+                            <h2 class="text-left text-uppercase">ECI (2015) </h2>
+                            <div class="number">
+                                <strong class="counter">0,04</strong><br>
+                                <small class="magnitude"></small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div><!--/.row-->
+            </div><!--/.indices-->
+        </div>
+    </div>
+</section>
+
+<section id="profile" class="profile">
+
+    <nav class="">
+        <div class="container">
+            <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active">
+                <a  href="#geral"
+                    aria-controls="geral"
+                    role="tab"
+                    data-toggle="tab">Geral</a>
+            </li>
+            <li role="presentation" class="{{ 'active' if tab == 'estabelecimentos' }}">
+                <a  href="#estabelecimentos"
+                    aria-controls="estabelecimentos"
+                    role="tab"
+                    graph
+                    data-toggle="tab">Estabelecimentos</a>
+            </li>
+            <li role="presentation" class="{{ 'active' if tab == 'equipamentos' }}">
+                <a  href="#equipamentos"
+                    aria-controls="equipamentos"
+                    role="tab"
+                    graph
+                    data-toggle="tab">Equipamentos</a>
+            </li>
+            <li role="presentation" class="{{ 'active' if tab == 'leitos' }}">
+                <a  href="#leitos"
+                    aria-controls="leitos"
+                    role="tab"
+                    graph
+                    data-toggle="tab">Leitos</a>
+            </li>
+            <li role="presentation" class="{{ 'active' if tab == 'profissionais' }}">
+                <a  href="#profissionais"
+                    aria-controls="profissionais"
+                    role="tab"
+                    graph
+                    data-toggle="tab">Profissionais</a>
+            </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="tab-content">
+            {% include "health/tab-geral.html" %}
+            {% include "health/tab-estabelecimentos.html" %}
+            {% include "health/tab-equipamentos.html" %}
+            {% include "health/tab-leitos.html" %}
+            {% include "health/tab-profissionais.html" %}
+        </div>
+    </div>
+</section>
+
+<section id="graphs" class="graphs bg-gray">
+</section>
+
+{% endblock content %}

@@ -48,7 +48,7 @@ def index(dataset, squares, size):
 
     title = get_graphs_title(type='tree_map', dataset=dataset, 
                               id_ibge='31', filter1='all', 
-                              filter2='all', output='bra')
+                              filter2='all', output=squares)
 
     return render_template('tree_map/index.html',
                            dataset=dataset,

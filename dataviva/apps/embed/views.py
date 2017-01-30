@@ -542,9 +542,40 @@ def image():
     return Response(str(code), status=200)   
 
 
+
+def get_output_class(dimetions):
+    bra = [
+        'region',
+        'mesoregion',
+        'microregion',
+        'state',
+        'municipality',
+        ]
+    # See with Elthon
+    cnae = [
+        'industry_class',
+        'industry_division',
+        'industry_section',
+        'establishment',
+        'employee',
+        'ethnicity',
+        'establishment_size',
+        ]
+
+    cbo = [
+        'occupation_family',
+        'occupation_group',
+        ]
+
+    if dimetions in bra : return 'bra'
+    if dimetions in cnae : return 'cnae'
+    if dimetions in cbo : return 'cbo'
+    return 'bra'
+
+
 def get_graphs_title(type='tree_map', dataset='secex', 
                         id_ibge='31', filter1='all', 
-                        filter2='all', output='bra'):
+                        filter2='all', output='municipality'):
     title = ''
     bra = id_ibge
     if '_' in id_ibge: # compare
@@ -552,13 +583,14 @@ def get_graphs_title(type='tree_map', dataset='secex',
     elif id_ibge is not 'all':
         bra = '<bra>'
 
+
     app = App.query.filter(type==type).first_or_404()
     query = Build.query.filter(Build.app_id==app.id, 
                                 Build.dataset==dataset, 
                                 Build.bra==bra, 
                                 Build.filter1==filter1, 
                                 Build.filter2==filter2, 
-                                Build.output==output).first_or_404()
+                                Build.output==get_output_class(output)).first_or_404()
 
     query.set_filter1(filter1)
     query.set_filter2(filter2)
@@ -566,4 +598,3 @@ def get_graphs_title(type='tree_map', dataset='secex',
     query.set_bra(bra_id)
     
     return str(query.title())
-

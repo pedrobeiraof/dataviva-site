@@ -6,7 +6,8 @@ var tree_map = document.getElementById('tree_map')
     depths = tree_map.getAttribute('depths').split(' '),
     values = tree_map.getAttribute('values').split(' '),
     dataset = tree_map.getAttribute('dataset'),
-    filters = tree_map.getAttribute('filters');
+    filters = tree_map.getAttribute('filters'),
+    title = tree_map.getAttribute('title');;
 
 // Temporarily translates text until dictionary is updated
 dictionary['state'] = lang == 'en' ? 'State' : 'Estado';
@@ -131,7 +132,7 @@ var loadViz = function(data) {
             'branding': true,
             'style': 'large'
         })
-        .title({'total': true, 'value': titleBuilder()})
+        .title({'total': true, 'value': title})
         .ui(uiBuilder());
 
         if (group) {

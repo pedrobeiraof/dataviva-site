@@ -4,6 +4,7 @@ from dataviva.apps.general.views import get_locale
 from dataviva.translations.dictionary import dictionary
 import urllib
 import json
+from dataviva.apps.embed.views import get_graphs_title
 
 mod = Blueprint('tree_map', __name__,
                 template_folder='templates',
@@ -45,6 +46,10 @@ def index(dataset, squares, size):
         value = request.args.get(param)
         params[param] = value if value and len(value.split()) > 1 else ''
 
+    title = get_graphs_title(type='tree_map', dataset=dataset, 
+                              id_ibge='31', filter1='all', 
+                              filter2='all', output='bra')
+
     return render_template('tree_map/index.html',
                            dataset=dataset,
                            squares=squares,
@@ -53,4 +58,5 @@ def index(dataset, squares, size):
                            depths=params['depths'],
                            values=params['values'],
                            filters=filters,
-                           dictionary=json.dumps(dictionary()))
+                           dictionary=json.dumps(dictionary()),
+                           title=title)

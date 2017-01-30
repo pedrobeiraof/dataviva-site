@@ -560,5 +560,10 @@ def get_graphs_title(type='tree_map', dataset='secex',
                                 Build.filter2==filter2, 
                                 Build.output==output).first_or_404()
 
+    query.set_filter1(filter1)
+    query.set_filter2(filter2)
+    bra_id = db.session.query(Bra.id).filter(Bra.id_ibge==id_ibge).first()[0]
+    query.set_bra(bra_id)
+    
     return str(query.title())
 

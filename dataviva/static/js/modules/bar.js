@@ -15,36 +15,38 @@ var data = [],
 
 // TODO: Title creator
 var title = 'Title';
-var textHelper = {
-    'loading': {
-        'en': 'loading ...',
-        'pt': 'carregando ...'
-    }
-};
 
 var visualization;
 
-var uis = [
-    {
+var uis = [];
+
+if(x.length > 1){
+    uis.push({
         'method': 'x',
         'value': x,
-        'type': 'drop'
-    },
-    {
+        'type': 'drop',
+        'label': 'xaxis'
+    });
+}
+
+if(y.length > 1){
+    uis.push({
         'value': y,
         'type': 'drop',
+        'label': 'yaxis',
         'method': function(value, viz){
             viz.y(value).id(value).draw();
         }
-    }
-];
+    });
+}
+
 
 var textHelper = {
     'loading': {
         'en': 'loading ...',
         'pt': 'carregando ...'
     },
-    'average_monthly_wage': {
+    'average_wage': {
         'en': 'Salário Médio Mensal',
         'pt': 'Average Monthly Wage'
     },
@@ -72,7 +74,7 @@ var textHelper = {
         'en': 'en_US',
         'pt': 'pt_BR'
     },
-    'average_monthly_wage': {
+    'average_wage': {
         'en': "Average Wage",
         'pt': "Salário Médio"  
     },
@@ -92,7 +94,7 @@ var textHelper = {
         'en': "Value [$ USD]",
         'pt': "Valor [$ USD]"
     },
-    'average_monthly_wage_label': {
+    'average_wage_label': {
         'en': "Average Monthly Wage [$ USD]",
         'pt': "Salário Médio Mensal [$ USD]"  
     },
@@ -108,7 +110,7 @@ var textHelper = {
         'en': "% of US$",
         'pt': "% de US$"  
     },
-    'simples': {
+    'simple': {
         'en': "Simples",
         'pt': "Simples"  
     },
@@ -116,9 +118,9 @@ var textHelper = {
         'en': "Establishment Size",
         'pt': "Tamanho do Estabelecimento"  
     },
-    'wage_received': {
-        'en': "Wage Received",
-        'pt': "Salário Recebido"  
+    'wage': {
+        'en': "Salary Mass",
+        'pt': "Massa Salarial"   
     },
     'gender': {
         'en': "Gender",
@@ -148,9 +150,9 @@ var textHelper = {
         'en': "Establishment Size ",
         'pt': "Tamanho do Estabelecimento"  
     },
-    'salary_mass': {
-        'en': "Salary Mass",
-        'pt': "Massa Salarial"  
+    'time_resolution': {
+        'en': "Time Resolution",
+        'pt': "Resolução Temporal"  
     }
 
 };
@@ -171,6 +173,12 @@ var formatHelper = {
 
         if (params.key == "kg" && params.labels == undefined)
             return formatted + " kg";
+
+        if (params.key == "wage" && params.labels == undefined)
+            return "$" + formatted + " BRL";
+
+        if (params.key == "average_wage" && params.labels == undefined)
+            return "$" + formatted + " BRL";
 
         if (params.key == "kg_pct" && params.labels == undefined)
             return parseFloat(formatted * 100).toFixed(1) + "%";
@@ -278,11 +286,11 @@ var addNameToData = function(data){
     });
 
     data = data.map(function(item){
-        if(item['wage_received'] != undefined)
-            item['wage_received'] = +item['wage_received'];
+        if(item['wage'] != undefined)
+            item['wage'] = +item['wage'];
 
-        if(item['average_monthly_wage'] != undefined)
-            item['average_monthly_wage'] = +item['average_monthly_wage'];
+        if(item['average_wage'] != undefined)
+            item['average_wage'] = +item['average_wage'];
 
         if(item['month'] != undefined)
             item['date'] = item['year'] + '/' + item['month'];
@@ -293,6 +301,7 @@ var addNameToData = function(data){
     if(options.indexOf('month') != -1){
         uis.push({
             'method': 'time',
+            'label': 'time_resolution',
             'value': [
                 {'month': 'date'},
                 {'year': 'year'}

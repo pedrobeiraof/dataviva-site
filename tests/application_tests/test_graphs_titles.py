@@ -1,5 +1,5 @@
 from flask import g
-from dataviva.apps.title.views import get_graphs_title
+from dataviva.apps.embed.views import get_graphs_title
 from test_base import BaseTestCase
 
 

@@ -1,10 +1,6 @@
 var occugrid = document.getElementById('occugrid')
     lang = document.documentElement.lang,
-    cicles = occugrid.getAttribute('cicles'),
-    size = occugrid.getAttribute('size'),
-    group = occugrid.getAttribute('group'),
-    dataset = occugrid.getAttribute('dataset'),
-    industry_id = "14126";
+    industry_id = occugrid.getAttribute('industry');
 
 // Temporarily translates text until dictionary is updated
 dictionary['state'] = lang == 'en' ? 'State' : 'Estado';
@@ -38,11 +34,9 @@ var buildData = function(apiResponse, metadataFamily, metadataGroup) {
             dataItem[header] = getAttrByName(item, header);
         });
         try{
-            if(dataItem['jobs'] > 3000){
-                dataItem['occupation_family'] = metadataFamily[dataItem['occupation_family']]["name_" + lang];
-                dataItem['occupation_group'] = metadataGroup[dataItem['occupation_group']]["name_" + lang];
-                data.push(dataItem);
-            }
+            dataItem['occupation_family'] = metadataFamily[dataItem['occupation_family']]["name_" + lang];
+            dataItem['occupation_group'] = metadataGroup[dataItem['occupation_group']]["name_" + lang];
+            data.push(dataItem);
         }catch(e){
             ;
         }
@@ -60,7 +54,7 @@ var loadViz = function(data) {
     .id(["occupation_group", "occupation_family"]) // nesting keys
     .depth(1)
     .size("jobs")         // key name to size bubbles
-    .title("Emprego Estimado para a <cnae> em Minas Gerais (2013)")
+    .title("Emprego Estimado para a "+ industry_id + " em Minas Gerais (2013)")
     .draw()                // finally, draw the visualization!
 
 };

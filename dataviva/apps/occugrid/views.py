@@ -25,8 +25,9 @@ def add_language_code(endpoint, values):
 def before_request():
     g.page_type = mod.name
 
-# cicle is occupation ever, the cnae is change,  
-@mod.route('/')
-def index():
+# cicle is occupation ever, the cnae is change,   
+@mod.route('/<industry>')
+def index(industry="14126"):
     return render_template('occugrid/index.html',
+                           industry=industry,
                            dictionary=json.dumps(dictionary()))

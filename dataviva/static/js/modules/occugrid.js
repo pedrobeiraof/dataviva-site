@@ -45,7 +45,7 @@ var buildData = function(apiResponse, metadataFamily, metadataGroup) {
     return data;
 }
 
-var loadViz = function(data) {
+var loadViz = function(data, industryName) {
   // instantiate d3plus
   var visualization = d3plus.viz()
     .container("#occugrid")     // container DIV to hold the visualization
@@ -54,7 +54,7 @@ var loadViz = function(data) {
     .id(["occupation_group", "occupation_family"]) // nesting keys
     .depth(1)
     .size("jobs")         // key name to size bubbles
-    .title("Emprego Estimado para a "+ industry_id + " em Minas Gerais (2013)")
+    .title("Emprego Estimado para a Atividade Econômica "+ industryName + " em Minas Gerais (2013)")
     .draw()                // finally, draw the visualization!
 
 };
@@ -76,18 +76,20 @@ $(document).ready(function() {
 
     var urls = ["http://api.staging.dataviva.info/rais/year/industry_" + industryDepth + "/occupation_group/occupation_family/?industry_" + industryDepth + "=" + industry_id + "&year=2014", 
                 "http://api.staging.dataviva.info/metadata/occupation_family",
-                "http://api.staging.dataviva.info/metadata/occupation_group"]
+                "http://api.staging.dataviva.info/metadata/occupation_group",
+                "http://api.staging.dataviva.info/metadata/industry_" + industryDepth + "/" + industry_id ]
     ajaxQueue(
         urls, 
         function(responses){
             var data = responses[0], 
                 metadataFamily = responses[1],             
-                metadataGroup = responses[2];
+                metadataGroup = responses[2],
+                industryName = responses[3]["name_" + lang];
 
             data = buildData(data, metadataFamily, metadataGroup);
 
             loading.hide();
-            loadViz(data);
+            loadViz(data, industryName);
 
         })
 });

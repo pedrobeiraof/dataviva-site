@@ -4,6 +4,7 @@ var occugrid = document.getElementById('occugrid')
     size = occugrid.getAttribute('size'),
     group = occugrid.getAttribute('group'),
     dataset = occugrid.getAttribute('dataset'),
+    industry_id = "14126";
 
 // Temporarily translates text until dictionary is updated
 dictionary['state'] = lang == 'en' ? 'State' : 'Estado';
@@ -20,7 +21,7 @@ dictionary['continent'] = lang == 'en' ? 'Continent' : 'Continente';
 dictionary['kg'] = 'KG';
 
 
-var buildData = function(apiResponse) {
+var buildData = function(apiResponse, metadataFamily, metadataGroup) {
 
     var getAttrByName = function(item, attr) {
         var index = headers.indexOf(attr);
@@ -36,8 +37,15 @@ var buildData = function(apiResponse) {
         headers.forEach(function(header){   
             dataItem[header] = getAttrByName(item, header);
         });
-        dataItem['main_group'] = dataItem['occupation'][0]
-        data.push(dataItem);
+        try{
+            if(dataItem['jobs'] > 3000){
+                dataItem['occupation_family'] = metadataFamily[dataItem['occupation_family']]["name_" + lang];
+                dataItem['occupation_group'] = metadataGroup[dataItem['occupation_group']]["name_" + lang];
+                data.push(dataItem);
+            }
+        }catch(e){
+            ;
+        }
     });
 
     return data;
@@ -49,8 +57,10 @@ var loadViz = function(data) {
     .container("#occugrid")     // container DIV to hold the visualization
     .data(data)     // data to use with the visualization
     .type("bubbles")       // visualization type
-    .id("main_group") // nesting keys
+    .id(["occupation_group", "occupation_family"]) // nesting keys
+    .depth(1)
     .size("jobs")         // key name to size bubbles
+    .title("Emprego Estimado para a <cnae> em Minas Gerais (2013)")
     .draw()                // finally, draw the visualization!
 
 };
@@ -58,14 +68,33 @@ var loadViz = function(data) {
 var loading = dataviva.ui.loading('.loading').text(dictionary['loading'] + '...');
 
 $(document).ready(function() {
-    var urls = ['http://api.staging.dataviva.info/rais/year/cnae/occupation/?value=jobs&cnae=14126&year=2014'];
+    switch(industry_id.length){
+        case 1:
+            industryDepth = "section";
+            break;
+        case 2:
+            industryDepth = "division";
+            break;
+        case 5:
+            industryDepth = "class";
+            break;
+    }
 
+    var urls = ["http://api.staging.dataviva.info/rais/year/industry_" + industryDepth + "/occupation_group/occupation_family/?industry_" + industryDepth + "=" + industry_id + "&year=2014", 
+                "http://api.staging.dataviva.info/metadata/occupation_family",
+                "http://api.staging.dataviva.info/metadata/occupation_group"]
     ajaxQueue(
         urls, 
         function(responses){
-            var data = responses[0];             data = buildData(data);
+            var data = responses[0], 
+                metadataFamily = responses[1],             
+                metadataGroup = responses[2];
+
+            data = buildData(data, metadataFamily, metadataGroup);
 
             loading.hide();
             loadViz(data);
+
         })
 });
+

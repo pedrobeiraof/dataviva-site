@@ -1,11 +1,14 @@
 var lang = document.documentElement.lang,
+    solo = [],
+    data = [],
     dataset = $("#line").attr("dataset"),
     line = $("#line").attr("line"),
+    options = $("#line").attr("options").split(","),
     filters = $("#line").attr("filters"),
     values = $("#line").attr("values").split(','),
     value = values[0],
     url = "http://api.staging.dataviva.info/" + 
-        dataset + "/year/" + line + ( filters ? "?" + filters : '');
+        dataset + "/year/" + ( options.indexOf('month') != -1 ? 'month/' : '' ) + line + ( filters ? "?" + filters : '');
 
 var titleHelper = {
     'import': {
@@ -106,6 +109,18 @@ var textHelper = {
     'jobs_label': {
         'en': "Jobs",
         'pt': "Empregos"  
+    },
+    'data_provided_by': {
+        'en': "Data provided by ",
+        'pt': "Dados fornecidos por ",
+    },
+        'month': {
+        'en': "Month",
+        'pt': "Mês"  
+    },
+    'time_resolution': {
+        'en': "Time Resolution",
+        'pt': "Resolução Temporal"  
     }
 };
 
@@ -160,12 +175,91 @@ var uiHelper = {
         'label': textHelper.yaxis[lang],
         'value': values,
         'method': function(value, viz){
+            currentX = value;
+            solo = updateSolo(data)
             viz.y({
                 "value": value,
-                "label": textHelper[value + '_label'][lang]
-            }).draw();
+                "label": textHelper[value + '_label'][lang],
+            }).id({
+                'solo': solo
+            })
+            .draw();
+        }
+    },
+    'time_resolution': {
+        'label': 'time_resolution',
+        'value': [
+            {'year': 'year'},
+            {'month': 'date'}
+        ],
+        'method': function(value, viz){
+            viz.time(value).x(value).draw();
         }
     }
+};
+var uis = [
+    uiHelper.scale,
+    uiHelper.yaxis
+];
+
+if(options.indexOf('month') != -1){
+    uis.push(uiHelper.time_resolution);
+}
+
+var currentY = line;
+var currentX = value;
+var MAX_BARS = 10;
+
+var groupDataByCurrentY = function(data){
+    var sumByItem = {};
+
+    data.forEach(function(item){
+        if(sumByItem[item[currentY]] == undefined)
+            sumByItem[item[currentY]] = {
+                "sum": 0,
+                "name": item[currentY]
+            };
+
+        sumByItem[item[currentY]].sum += item[currentX];
+    });
+
+    var list = [];
+
+    for(var item in sumByItem){
+        list.push({
+            name: sumByItem[item].name,
+            sum: sumByItem[item].sum
+        });
+    }
+
+    return list;
+}
+
+var getTopCurrentYNames = function(groupedData){
+    var compare = function(a, b){
+        if(a.sum < b.sum)
+            return 1;
+        if(a.sum > b.sum)
+            return -1;
+
+        return 0;
+    }
+
+    var list = groupedData.sort(compare).slice(0, MAX_BARS);
+
+    var selected = list.map(function(item){
+        return item.name;
+    });
+
+    return selected;
+}
+
+var updateSolo = function(data){
+    var copiedData = (JSON.parse(JSON.stringify(data)));
+    var groupedData = groupDataByCurrentY(copiedData);
+    solo = getTopCurrentYNames(groupedData);
+
+    return solo;
 };
 
 var loadViz = function(data){
@@ -174,15 +268,24 @@ var loadViz = function(data){
         .data(data)
         .type("line")
         .text("name")
-        .id(line)
+        .id({
+            'value': line,
+            'solo': solo
+        })
         .background("transparent")
+        .font({
+            'size': 13
+        })
         .shape({
             "interpolate": "monotone"
         })
         .x({
             "value": 'year',
             'label': {
-                'value': textHelper.year[lang]
+                'value': textHelper.year[lang],
+                'font': {
+                    'size': 16
+                }
             }
         })
         .y({
@@ -190,20 +293,30 @@ var loadViz = function(data){
             "label": {
                 "value": textHelper[value + '_label'][lang],
                 "font": {
-                    "size": 20
+                    "size": 22
                 }
             }
         })
+
         .format(formatHelper)
         .title(titleStyle)
         .title(title)
         .tooltip("type")
-        .ui([
-            uiHelper.scale,
-            uiHelper.yaxis
-        ])
-        .time(textHelper.year[lang])
-        .draw()
+        .ui(uis)
+        .footer({
+            "value": textHelper["data_provided_by"][lang] + dataset.toUpperCase()
+        })
+        .time('year')
+
+        if(options.indexOf('singlecolor') != -1){
+            visualization.color({
+                "value" : function(d){
+                    return "#4d90fe";
+                }
+            }).legend(false)
+        }
+
+        visualization.draw()
 };
 
 var buildData = function(responseApi){
@@ -213,7 +326,6 @@ var buildData = function(responseApi){
         return item[index];
     }
 
-    var data = [];
     var headers = responseApi.headers;
 
     responseApi.data.forEach(function(item){
@@ -233,29 +345,31 @@ var FAKE_VALUE = 1;
 
 var processData = function(data){
 
-    var fillMissingYears = function(data){
-        var years = new Set();
+    var fillMissingDates = function(data){
+        var dates = new Set();
         var lines = new Set();
         var check = {};
 
         data.forEach(function(item){
-            years.add(item.year);
+            dates.add(item.date);
             lines.add(item[line]);
 
             if(check[item[line]] == undefined)
                 check[item[line]] = {};
 
-            check[item[line]][item.year] = true;
+            check[item[line]][item.date] = true;
         });
 
-        years = Array.from(years);
+        dates = Array.from(dates);
         lines = Array.from(lines);
 
-        years.forEach(function(year){
+        dates.forEach(function(date){
             lines.forEach(function(lineValue){
-                if(check[lineValue][year] == undefined){
+                if(check[lineValue][date] == undefined){
                     var dataItem = {};
-                    dataItem['year'] = year;
+                    dataItem['date'] = date;
+                    dataItem['year'] = date.split('/')[0];
+                    dataItem['month'] = date.split('/')[1];
                     dataItem[line] = lineValue;
 
                     values.forEach(function(value){
@@ -270,7 +384,14 @@ var processData = function(data){
         return data;
     };
 
-    data = fillMissingYears(data);
+    data = data.map(function(item){
+        if(item['month'] != undefined)
+            item['date'] = item['year'] + '/' + item['month'];
+
+        return item;
+    });
+
+    data = fillMissingDates(data);
 
     data = data.map(function(item){
         if(line_metadata[item[line]])
@@ -284,8 +405,11 @@ var processData = function(data){
     });
 
     data = data.map(function(item){
-        item['average_wage'] = +item['average_wage'];
-        item['wage'] = +item['wage'];
+        if(item['average_wage'])
+            item['average_wage'] = +item['average_wage'];
+        
+        if(item['wage'])
+            item['wage'] = +item['wage'];
 
         return item;
     });
@@ -307,6 +431,7 @@ $(document).ready(function(){
 
         var data = buildData(api);
         data = processData(data);
+        solo = updateSolo(data);
 
         loading.hide();
         loadViz(data);

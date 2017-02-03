@@ -166,16 +166,23 @@ var textHelper = {
     'total_of': {
         'en': "Total in selected years: ",
         'pt': "Total nos anos selecionados: ",
+    },
+    'data_provided_by': {
+        'en': "Data provided by ",
+        'pt': "Dados fornecidos por ",
     }
 
 };
 
 var formatHelper = {
     "text": function(text, params) {
+        if(params.labels == false)
+            return text;
+
         if (textHelper[text] != undefined)
             return textHelper[text][lang];
 
-        return d3plus.string.title(text, params);
+        return d3plus.string.title(text, params); 
     },
 
     "number": function(number, params) {
@@ -209,15 +216,30 @@ var loadViz = function(data){
         .data(data)
         .background("transparent")
         .type("bar")
+        .font({
+            'size': 13
+        })
         .id({
             'value': currentY,
             'solo': solo
         })
         .y({
             "value": currentY,
-            "scale": "discrete" // Manually set Y-axis to be discrete
+            "scale": "discrete",
+            'label': {
+                'font': {
+                    'size': 22
+                }
+            }
         })
-        .x(currentX)
+        .x({
+            "value": currentX,
+            'label': {
+                'font': {
+                    'size': 16
+                }
+            }
+        })
         .ui(uis)
         .format(formatHelper)
         .time({
@@ -234,7 +256,20 @@ var loadViz = function(data){
             'value': currentX,
             'sort': 'asc'
         })
-        .draw()
+        .footer({
+            "value": textHelper["data_provided_by"][lang] + dataset.toUpperCase()
+        })
+
+
+        if(options.indexOf('singlecolor') != -1){
+            visualization.color({
+                "value" : function(d){
+                    return "#4d90fe";
+                }
+            }).legend(false)
+        }
+
+        visualization.draw()
 };
 
 var getSelectedYears = function() {

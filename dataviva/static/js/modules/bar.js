@@ -17,6 +17,7 @@ var data = [],
 var title = 'Title';
 
 var visualization;
+var percentage = false;
 
 var uis = [];
 
@@ -27,13 +28,17 @@ if(x.length > 1){
         'label': 'xaxis',
         'method': function(value, viz){
             currentX = value;
-            viz.x(value)
+
+            if(percentage)
+                currentX = currentX + '_pct';
+
+            viz.x(currentX)
                .order({
-                    'value': currentX,
-                    'sort': 'asc'
+                    'value': data[0][currentY + '_order'] == undefined ? currentX : currentY + '_order',
+                    'sort': data[0][currentY + '_order'] == undefined ? 'asc' : 'desc'
                 })
-               .draw();
-               totalOfCurrentX()
+            totalOfCurrentX()
+            viz.draw()
         }
     });
 }
@@ -45,10 +50,139 @@ if(y.length > 1){
         'label': 'yaxis',
         'method': function(value, viz){
             currentY = value;
-            viz.y(value).id(value).draw();
+
+            viz.y(value)
+                .id(value)
+                .order({
+                    'value': data[0][currentY + '_order'] == undefined ? currentX : currentY + '_order',
+                    'sort': data[0][currentY + '_order'] == undefined ? 'asc' : 'desc'
+                })
+                .color(currentY + "_color")
+                .legend(false)
+                .draw();
         }
     });
 }
+
+var colorHelper = {
+   'gender': {
+        '0': '#d73027',
+        '1': '#4575b4'
+   },
+   'literacy': {
+        '-1':'#d73027',
+        '1':'#f46d43',
+        '2':'#fdae61',
+        '3':'#fee090',
+        '4':'#e0f3f8',
+        '5':'#abd9e9',
+        '6':'#74add1',
+        '7':'#4575b4'
+   },
+   'ethnicity': {
+        '-1': '#f46d43',
+        '1': '#fdae61',
+        '2': '#fee090',
+        '4': '#e0f3f8',
+        '6': '#abd9e9',
+        '8': '#74add1'
+   },
+   'simple': {
+        '0': '#f46d43',
+        '1': '#74add1' 
+   },
+   'establishment_size': {
+        '-1': '#d73027',
+        '0': '#f46d43',
+        '1': '#fdae61',
+        '2': '#abd9e9',
+        '3': '#74add1',
+        '4': '#4575b4'
+   },
+   'legal_nature': {
+        '-1':'#d73027',
+        '1':'#f46d43',
+        '2':'#fdae61',
+        '3':'#fee090',
+        '4':'#e0f3f8',
+        '5':'#abd9e9',
+        '6':'#74add1',
+        '7':'#4575b4'
+    }
+}
+
+var addColor = function(data){
+   data = data.map(function(item){
+       for(key in colorHelper){
+           if(item[key] != undefined)
+               item[key + '_color'] = colorHelper[key][item[key]];
+       }
+
+       return item;
+   });
+
+   return data;
+};
+
+var orderHelper = {
+    'ethnicity': {
+        '-1': 6,
+        '1': 5,
+        '2': 1,
+        '4': 3,
+        '6': 4,
+        '8': 2
+    },
+    'gender': {
+        '0': 2,
+        '1': 1
+    },
+    'literacy': {
+        '-1': 8,
+        '1': 7,
+        '2': 6,
+        '3': 5,
+        '4': 4,
+        '5': 3,
+        '6': 2,
+        '7': 1
+    },
+    'simple': {
+        '0': 2,
+        '1': 1 
+    },
+    'establishment_size': {
+        '-1': 5,
+        '0': 6,
+        '1': 4,
+        '2': 3,
+        '3': 2,
+        '4': 1
+    },
+    'legal_nature': {
+        '-1': 8,
+        '1': 1,
+        '2': 2,
+        '3': 3,
+        '4': 4,
+        '5': 5,
+        '6': 6,
+        '7': 7
+    }
+}
+
+var addOrder = function(data){
+    data = data.map(function(item){
+        for(key in orderHelper){
+            if(item[key] != undefined)
+                item[key + '_order'] = orderHelper[key][item[key]];
+        }
+
+        return item;
+    });
+
+    return data;
+};
 
 var textHelper = {
     'loading': {
@@ -127,6 +261,14 @@ var textHelper = {
         'en': "Establishment Size",
         'pt': "Tamanho do Estabelecimento"  
     },
+    'average_establishment_size': {
+        'en': "Average Establishment Size",
+        'pt': "Tamanho Médio do Estabelecimento"  
+    },
+    'establishment_count': {
+        'en': "Establishments",
+        'pt': "Estabelecimentos"  
+    },
     'wage': {
         'en': "Salary Mass",
         'pt': "Massa Salarial"   
@@ -170,9 +312,47 @@ var textHelper = {
     'data_provided_by': {
         'en': "Data provided by ",
         'pt': "Dados fornecidos por ",
+    },
+    'percentage_terms': {
+        'en': 'Percentage Terms',
+        'pt': 'Termos Percentuais'
+    },
+    'values': {
+        'en': 'Values',
+        'pt': 'Valores'
+    }
+};
+
+var formatNumber = function(digit){
+    var lastDigit = digit.slice(-1);
+
+    if(!isNaN(lastDigit))
+        return digit;
+
+    var number =  digit.slice(0, -1);
+
+    var scale = {
+        'T': {
+            'en': number < 2 ? ' Trillion' : ' Trillions',
+            'pt': number < 2 ? ' Trilhão' : ' Trilhões'
+        },
+        'B': {
+            'en': number < 2 ? ' Billion' : ' Billions',
+            'pt': number < 2 ? ' Bilhão' : ' Bilhões'
+        },
+        'M': {
+            'en': number < 2 ? ' Million' : ' Millions',
+            'pt': number < 2 ? ' Milhão' : ' Milhões'
+        },
+        'k': {
+            'en': ' Thousand',
+            'pt': ' Mil'
+        }
     }
 
-};
+    return number + scale[lastDigit][lang];
+}
+
 
 var formatHelper = {
     "text": function(text, params) {
@@ -187,6 +367,8 @@ var formatHelper = {
 
     "number": function(number, params) {
         var formatted = d3plus.number.format(number, params);
+
+        formatted = formatNumber(formatted)
         
         if (params.key == "value" && params.labels == undefined)
             return "$" + formatted + " USD";
@@ -201,10 +383,10 @@ var formatHelper = {
             return "$" + formatted + " BRL";
 
         if (params.key == "kg_pct" && params.labels == undefined)
-            return parseFloat(formatted * 100).toFixed(1) + "%";
+            return parseFloat(formatted).toFixed(1) + "%";
 
         if (params.key == "value_pct" && params.labels == undefined)
-            return parseFloat(formatted * 100).toFixed(1) + "%";
+            return parseFloat(formatted).toFixed(1) + "%";
 
         return formatted;
     }
@@ -226,6 +408,7 @@ var loadViz = function(data){
         .y({
             "value": currentY,
             "scale": "discrete",
+            'grid': false,
             'label': {
                 'font': {
                     'size': 22
@@ -250,25 +433,32 @@ var loadViz = function(data){
             }
         })
         .aggs({
-            'average_wage': 'mean'
+            'average_wage': 'mean',
+            'ethnicity_order': 'mean',
+            'gender_order': 'mean',
+            'literacy_order': 'mean',
+            'simple_order': 'mean',
+            'establishment_size_order': 'mean',
+            'legal_nature_order': 'mean'
         })
         .order({
-            'value': currentX,
-            'sort': 'asc'
+            'value': data[0][currentY + '_order'] == undefined ? currentX : currentY + '_order',
+            'sort': data[0][currentY + '_order'] == undefined ? 'asc' : 'desc'
         })
         .footer({
             "value": textHelper["data_provided_by"][lang] + dataset.toUpperCase()
         })
-
+        .color(currentY + "_color")
+        .legend(false)
 
         if(options.indexOf('singlecolor') != -1){
             visualization.color({
                 "value" : function(d){
-                    return "#4d90fe";
+                    return "#4575b4";
                 }
             }).legend(false)
         }
-
+        totalOfCurrentX();
         visualization.draw()
 };
 
@@ -285,29 +475,25 @@ var getSelectedYears = function() {
 }
 
 var totalOfCurrentX = function(){
-    if (currentX.endsWith('_pct')){
-        var years = getSelectedYears();
-        var key = currentX.slice(0, currentX.indexOf('_pct'));
-        var total = data.reduce(function(acc, item){
-            if(years.indexOf(item.year) != -1){
-                acc += item[key];
+    var years = getSelectedYears();
+    years = years.length == 0 ? [lastYear(data)] : years;
+
+    var key = currentX.endsWith('_pct') ? currentX.slice(0, currentX.indexOf('_pct')) : currentX;
+    var total = data.reduce(function(acc, item){
+        if(years.indexOf(item.year) != -1){
+            acc += item[key];
+        }
+        return acc;
+    }, 0);
+    
+    visualization.title({
+        'sub': {
+            'value': textHelper["total_of"][lang] + formatHelper.number(total, {key: key}),
+            'font': {
+                'align': 'left'
             }
-            return acc;
-        }, 0);
-        visualization.title({
-            'sub': {
-                'value': textHelper["total_of"][lang] + ' ' +  formatHelper.number(total, {key: key}),
-                'font': {
-                    'align': 'left'
-                }
-            }
-        })
-    }
-    else{
-        visualization.title({
-            'sub': false
-        })
-    }
+        }
+    })
 };
 
 var buildData = function(responseApi){
@@ -355,15 +541,29 @@ var addPercentage = function(data){
 
     data = data.map(function(item){
         x.forEach(function(xValue){
-            item[xValue + '_pct'] = item[xValue] / total[xValue][item.year];
+            item[xValue + '_pct'] = 100 * (item[xValue] / total[xValue][item.year]);
         });
 
         return item;
     });
 
-    x.forEach(function(xValue){
-        x.push(xValue + '_pct')
-    });
+    uis.unshift({
+        'value': ['values', 'percentage_terms'],
+        'type': 'drop',
+        'label': 'Layout',
+        'method': function(value, viz){
+            percentage = value == 'percentage_terms' ? true : false;
+
+            if(currentX.indexOf( "_pct" ) != -1)
+                currentX = currentX.slice(0, -4);
+
+            if(percentage)
+                currentX = currentX + '_pct';
+
+            viz.x(currentX).draw()
+            totalOfCurrentX()
+        }
+    })
 
     return data;
 }
@@ -372,7 +572,6 @@ var addNameToData = function(data){
     y.forEach(function(itemY){
         data = data.map(function(item){
             if(metadatas[itemY][item[itemY]] == undefined){
-                // console.log("Not found name to: " + itemY + ' - ' + item[itemY]);
                 item[itemY] = 'NOT FOUND!';
             }
             else{
@@ -494,6 +693,8 @@ $(document).ready(function(){
             });
 
             data = buildData(api);
+            data = addColor(data);
+            data = addOrder(data);
             data = addNameToData(data);
             data = addPercentage(data);
             solo = updateSolo(data);

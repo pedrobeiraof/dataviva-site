@@ -124,6 +124,36 @@ var textHelper = {
     }
 };
 
+var formatNumber = function(digit){
+    var lastDigit = digit.slice(-1);
+
+    if(!isNaN(lastDigit))
+        return digit;
+
+    var number =  digit.slice(0, -1);
+
+    var scale = {
+        'T': {
+            'en': number < 2 ? ' Trillion' : ' Trillions',
+            'pt': number < 2 ? ' Trilhão' : ' Trilhões'
+        },
+        'B': {
+            'en': number < 2 ? ' Billion' : ' Billions',
+            'pt': number < 2 ? ' Bilhão' : ' Bilhões'
+        },
+        'M': {
+            'en': number < 2 ? ' Million' : ' Millions',
+            'pt': number < 2 ? ' Milhão' : ' Milhões'
+        },
+        'k': {
+            'en': ' Thousand',
+            'pt': ' Mil'
+        }
+    }
+
+    return number + scale[lastDigit][lang];
+}
+
 var formatHelper = {
     "text": function(text, params) {
         if (textHelper[text] != undefined)
@@ -134,6 +164,8 @@ var formatHelper = {
 
     "number": function(number, params) {
         var formatted = d3plus.number.format(number, params);
+
+        formatted = formatNumber(formatted)
 
         if (params.key == "value" && number == FAKE_VALUE)
             return lang == 'en' ? "Not Available" : "Não disponível";
@@ -193,7 +225,9 @@ var uiHelper = {
             {'month': 'date'}
         ],
         'method': function(value, viz){
-            viz.time(value).x(value).draw();
+            viz.time(value)
+                .x(value)
+                .draw();
         }
     }
 };
@@ -262,8 +296,10 @@ var updateSolo = function(data){
     return solo;
 };
 
+var visualization;
+
 var loadViz = function(data){
-    var visualization = d3plus.viz()
+    visualization = d3plus.viz()
         .container("#line")
         .data(data)
         .type("line")

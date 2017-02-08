@@ -34,9 +34,11 @@ var buildData = function(apiResponse, metadataFamily, metadataGroup) {
             dataItem[header] = getAttrByName(item, header);
         });
         try{
-            dataItem['occupation_family'] = metadataFamily[dataItem['occupation_family']]["name_" + lang];
-            dataItem['occupation_group'] = metadataGroup[dataItem['occupation_group']]["name_" + lang];
-            data.push(dataItem);
+            if(dataItem['jobs'] > 2000){
+                dataItem['occupation_family'] = metadataFamily[dataItem['occupation_family']]["name_" + lang];
+                dataItem['occupation_group'] = metadataGroup[dataItem['occupation_group']]["name_" + lang];
+                data.push(dataItem);
+            }
         }catch(e){
             ;
         }
@@ -48,15 +50,15 @@ var buildData = function(apiResponse, metadataFamily, metadataGroup) {
 var loadViz = function(data, industryName) {
   // instantiate d3plus
   var visualization = d3plus.viz()
-    .container("#occugrid")     // container DIV to hold the visualization
-    .data(data)     // data to use with the visualization
-    .type("bubbles")       // visualization type
-    .id(["occupation_group", "occupation_family"]) // nesting keys
+    .container("#occugrid")     
+    .data(data)     
+    .type("bubbles")       
+    .id(["occupation_group", "occupation_family"]) 
     .depth(1)
-    .size("jobs")         // key name to size bubbles
+    .size("jobs")
+    .color("occupation_group")
     .title("Emprego Estimado para a Atividade Econômica "+ industryName + " em Minas Gerais (2013)")
-    .draw()                // finally, draw the visualization!
-
+    .draw()
 };
 
 var loading = dataviva.ui.loading('.loading').text(dictionary['loading'] + '...');

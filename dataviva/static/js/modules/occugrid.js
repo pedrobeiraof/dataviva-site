@@ -72,6 +72,10 @@ var loadViz = function(data, industryName) {
         'label' : 'grupo',
         'type' : 'button',
         'value' : ['false', 'true']
+    },{
+        'method' : 'size',
+        'label' : 'size',
+        'value' : ['jobs', 'wage', 'average_wage', 'average_age', 'average_establishment_size']
     }])
     .draw()
 };

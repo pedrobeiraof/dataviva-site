@@ -34,8 +34,10 @@ var buildData = function(apiResponse, metadataFamily, metadataGroup) {
             dataItem[header] = getAttrByName(item, header);
         });
         try{
+                dataItem['icon'] = '/static/img/icons/cbo/cbo_' + dataItem['occupation_group'] + '.png' 
                 dataItem['occupation_family'] = metadataFamily[dataItem['occupation_family']]["name_" + lang];
                 dataItem['occupation_group'] = metadataGroup[dataItem['occupation_group']]["name_" + lang];
+                
                 data.push(dataItem);
         }catch(e){
             ;
@@ -57,6 +59,7 @@ var loadViz = function(data, industryName) {
     .size("jobs")
     .color("occupation_group")
     .depth(1)
+    .icon({'value': 'icon', 'style': 'knockout'})
     .title("Emprego Estimado para a Atividade Econômica "+ industryName + " em Minas Gerais (2013)")
     
     viz.ui([{

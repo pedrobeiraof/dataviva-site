@@ -4,6 +4,7 @@ var lang = document.documentElement.lang,
     dataset = $("#line").attr("dataset"),
     line = $("#line").attr("line"),
     options = $("#line").attr("options").split(","),
+    subtitle = $("#line").attr("subtitle"),
     filters = $("#line").attr("filters"),
     values = $("#line").attr("values").split(','),
     value = values[0],
@@ -121,6 +122,14 @@ var textHelper = {
     'time_resolution': {
         'en': "Time Resolution",
         'pt': "Resolução Temporal"  
+    },
+    'exporting_municipality': {
+        'en': "Based on the Exporting Municipality",
+        'pt': "Baseado nos Municípios Exportadores" 
+    },
+    'state_production': {
+        'en': "Based on State Production",
+        'pt': "Baseado nos Estados Produtores" 
     }
 };
 
@@ -321,7 +330,7 @@ var loadViz = function(data){
                 'value': textHelper.year[lang],
                 'font': {
                     'size': 16
-                }
+                }     
             }
         })
         .y({
@@ -352,6 +361,17 @@ var loadViz = function(data){
             }).legend(false)
         }
 
+        if(subtitle != ""){
+            visualization.title({
+                'sub': {
+                    'value': textHelper[subtitle][lang],
+                    'font': {
+                        'align': 'left'
+                    }
+                }
+            })
+        }
+
         visualization.draw()
 };
 
@@ -379,15 +399,47 @@ var buildData = function(responseApi){
 
 var FAKE_VALUE = 1;
 
+var firstYear = function(data){
+    var minYear = 9999;
+
+    data.forEach(function(item){
+        if(item.year < minYear)
+            minYear = item.year;
+    });
+
+    return minYear;
+};
+
+var lastYear = function(data){
+    var maxYear = 0;
+
+    data.forEach(function(item){
+        if(item.year > maxYear)
+            maxYear = item.year;
+    });
+
+    return maxYear;
+};
+
 var processData = function(data){
 
-    var fillMissingDates = function(data){
-        var dates = new Set();
+    var allDates = function(minYear, maxYear){
+        var dates = [];
+            var months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                for(var year = minYear; year <= maxYear; year++){
+                    months.forEach(function(month){
+                        dates.push(new Date(year, month));
+                    })
+                }
+
+    return dates;
+};
+
+var fillMissingDates = function(data){
         var lines = new Set();
         var check = {};
-
+  
         data.forEach(function(item){
-            dates.add(item.date);
             lines.add(item[line]);
 
             if(check[item[line]] == undefined)
@@ -396,7 +448,7 @@ var processData = function(data){
             check[item[line]][item.date] = true;
         });
 
-        dates = Array.from(dates);
+        var dates = allDates(firstYear(data), lastYear(data));
         lines = Array.from(lines);
 
         dates.forEach(function(date){
@@ -404,8 +456,8 @@ var processData = function(data){
                 if(check[lineValue][date] == undefined){
                     var dataItem = {};
                     dataItem['date'] = date;
-                    dataItem['year'] = date.split('/')[0];
-                    dataItem['month'] = date.split('/')[1];
+                    dataItem['year'] = date.getFullYear();
+                    dataItem['month'] = date.getMonth() + 1;
                     dataItem[line] = lineValue;
 
                     values.forEach(function(value){
@@ -422,7 +474,7 @@ var processData = function(data){
 
     data = data.map(function(item){
         if(item['month'] != undefined)
-            item['date'] = item['year'] + '/' + item['month'];
+            item['date'] = new Date(item['year'], item['month'] - 1);
 
         return item;
     });
@@ -465,7 +517,7 @@ $(document).ready(function(){
         api = responses[0];
         line_metadata = responses[1];
 
-        var data = buildData(api);
+        data = buildData(api);
         data = processData(data);
         solo = updateSolo(data);
 

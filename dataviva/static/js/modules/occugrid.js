@@ -34,11 +34,12 @@ var buildData = function(apiResponse, metadataFamily, metadataGroup) {
             dataItem[header] = getAttrByName(item, header);
         });
         try{
+            if(dataItem['jobs'] >= 2000){
                 dataItem['icon'] = '/static/img/icons/cbo/cbo_' + dataItem['occupation_group'] + '.png' 
                 dataItem['occupation_family'] = metadataFamily[dataItem['occupation_family']]["name_" + lang];
                 dataItem['occupation_group'] = metadataGroup[dataItem['occupation_group']]["name_" + lang];
-                
                 data.push(dataItem);
+            }
         }catch(e){
             ;
         }
@@ -46,22 +47,36 @@ var buildData = function(apiResponse, metadataFamily, metadataGroup) {
 
     return data;
 }
+
 var loadViz = function(data, industryName) {
   // instantiate d3plus
-  var viz = d3plus.viz()
+
+/*
+     }
+ */
+
+ var viz = d3plus.viz()
     .container("#occugrid")     
     .data(data)     
     .type("bubbles")       
     .id({
         'value': ["occupation_group", "occupation_family"],
         'grouping' : false
-    })  
-    .size("jobs")
-    .color("occupation_group")
+    }) 
+    .size({"value": "jobs", "scale": {"min":100}, "threshold" : true})
+    .color({"value": "occupation_group"})
     .depth(1)
     .icon({'value': 'icon', 'style': 'knockout'})
     .title("Emprego Estimado para a Atividade Econômica "+ industryName + " em Minas Gerais (2013)")
-    
+    .active("jobs")
+    .temp("elsewhere")
+    .total("required")
+    //.shape("donut")
+    .order({"sort" : "desc"})
+    .labels({"font": {"size": 13}})
+ 
+
+
     viz.ui([{
         'method' : function(value){
             console.log(value);

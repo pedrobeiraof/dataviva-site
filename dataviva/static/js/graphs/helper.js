@@ -159,7 +159,6 @@ var titleBuilder = function(shapes, dataset, filters, yearRange) {
     title = title.replace('<shapes>', PLURAL[shapes]);
     title = title.charAt(0).toUpperCase() + title.slice(1);
 
-    console.log(title);
     return {'title': title, 'subtitle': subtitle};
 };
 
